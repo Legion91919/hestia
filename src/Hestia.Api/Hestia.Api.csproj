@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <RootNamespace>Hestia.Api</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Agentic.Blocks.Core" Version="0.1.0" />
+    <PackageReference Include="Agentic.Blocks.Web" Version="0.1.0" />
+    <PackageReference Include="Agentic.Blocks.Auth" Version="0.1.0" />
+    <PackageReference Include="Agentic.Blocks.Audit" Version="0.1.0" />
+    <PackageReference Include="Agentic.Blocks.Outbox" Version="0.1.0" />
+    <PackageReference Include="Agentic.Blocks.Notifications" Version="0.1.0" />
+    <ProjectReference Include="../Modules/Tenancy/Hestia.Tenancy.csproj" />
+    <ProjectReference Include="../Modules/Investors/Hestia.Investors.csproj" />
+    <ProjectReference Include="../Modules/Documents/Hestia.Documents.csproj" />
+    <InternalsVisibleTo Include="Hestia.Tests" />
+  </ItemGroup>
+</Project>

@@ -32,3 +32,6 @@ denylist.txt
 *.safetensors
 
 # Note: .agentic/ is deliberately NOT ignored. It is the project's memory.
+
+# Local document storage (invented files written at runtime)
+App_Data/

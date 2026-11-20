@@ -1,4 +1,4 @@
-# LP Hub: project map
+# Hestia: project map
 
 | Question | File |
 |---|---|

@@ -1,6 +1,6 @@
 # AGENTS.md
 
-LP Hub: Harbourline's fund investors receive statements as email attachments, and nobody can say who opened what or when.
+Hestia: Harbourline's fund investors receive statements as email attachments, and nobody can say who opened what or when.
 
 ## Read first
 Everything about this project lives in the hidden `.agentic/` folder.
@@ -14,3 +14,6 @@ Load only the files your task needs.
 - Never commit secrets, real client data or personal data. Use `.env.example`.
 - Do not grow this file. New knowledge goes in the right `.agentic/` file; history goes in `.agentic/changelog.md`.
 - When you learn something that would help on the next project, add it to `.agentic/lessons.md`.
+
+## What is live
+Slice 1: tenant-isolated statements, audited downloads, instant revocation, in-app notice on publish; Blazor SSR UI on :5203. Run and test: `.agentic/runbook.md`.

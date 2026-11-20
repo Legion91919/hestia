@@ -1,0 +1,76 @@
+@page "/documents"
+@attribute [Authorize(Policy = HestiaApp.InvestorPolicy)]
+@attribute [StreamRendering]
+@inject DocumentsPageLoader Loader
+@inject Agentic.Blocks.Core.ICorrelationContext Correlation
+<PageTitle>Your documents · Hestia</PageTitle>
+
+@if (_model is not null)
+{
+    <p class="hello">@_model.InvestorName</p>
+}
+<h1>Your documents</h1>
+
+@if (_error)
+{
+    <section class="card card-error" role="alert">
+        <h2>We could not load your documents</h2>
+        <p class="meta">Nothing is lost. Try again in a minute. If it keeps happening, quote reference <span class="num">@_reference</span> to investor relations.</p>
+        <a class="btn" href="/documents">Try again</a>
+    </section>
+}
+else if (_model is null)
+{
+    <section class="card" aria-busy="true" aria-live="polite">
+        <div class="skel w30"></div><div class="skel w70"></div><div class="skel w50"></div>
+        <span class="meta">Loading your documents&hellip;</span>
+    </section>
+}
+else if (_model.IsEmpty)
+{
+    <section class="card">
+        <h2>No documents yet</h2>
+        <p class="meta">Your first statement will appear here when investor relations publishes it. We will tell you under Updates.</p>
+    </section>
+}
+else
+{
+    var hero = _model.Hero!;
+    <section class="card hero" aria-label="Latest statement">
+        <span class="@(hero.IsNew ? "tag tag-new" : "tag tag-quiet")">@(hero.IsNew ? "New this quarter" : "Opened")</span>
+        <h2>@hero.Title, @hero.Period</h2>
+        <div class="meta num">@hero.Fund &middot; published @hero.PublishedLabel &middot; @hero.SizeLabel</div>
+        <a class="btn" href="@hero.DownloadUrl">Open statement</a>
+    </section>
+    @if (_model.Earlier.Count > 0)
+    {
+        <h2 class="section">Earlier documents</h2>
+        <ul class="rows">
+            @foreach (var row in _model.Earlier)
+            {
+                <DocumentRow Row="row" @key="row.Id" />
+            }
+        </ul>
+    }
+}
+
+@code {
+    [CascadingParameter] private Task<AuthenticationState> AuthState { get; set; } = default!;
+    private DocumentsPageModel? _model;
+    private bool _error;
+    private string? _reference;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var user = (await AuthState).User;
+            _model = await Loader.LoadAsync(user.GetUserId()!);
+        }
+        catch (Exception ex) when (ex is InvalidOperationException or IOException)
+        {
+            _error = true;
+            _reference = Correlation.CorrelationId;
+        }
+    }
+}

@@ -22,19 +22,19 @@ jobs:
 
       - name: Restore
         if: hashFiles('**/*.sln', '**/*.csproj') != ''
-        run: dotnet restore
+        run: dotnet restore Hestia.sln   # nuget.config: vendored blocks in eng/packages + nuget.org
 
       - name: Build (warnings as errors)
         if: hashFiles('**/*.sln', '**/*.csproj') != ''
-        run: dotnet build --no-restore -c Release -warnaserror
+        run: dotnet build Hestia.sln --no-restore -c Release -warnaserror   # includes the Blazor components
 
       - name: Format check
         if: hashFiles('**/*.sln', '**/*.csproj') != ''
-        run: dotnet format --verify-no-changes --no-restore
+        run: dotnet format Hestia.sln --verify-no-changes --no-restore
 
       - name: Test with coverage
         if: hashFiles('**/*.sln', '**/*.csproj') != ''
-        run: dotnet test --no-build -c Release --collect:"XPlat Code Coverage" --results-directory TestResults
+        run: dotnet test Hestia.sln --no-build -c Release --collect:"XPlat Code Coverage" --results-directory TestResults
 
       - name: Coverage gate (70% line, ratchet up over time)
         if: hashFiles('TestResults/**/coverage.cobertura.xml') != ''
@@ -48,7 +48,7 @@ jobs:
       - name: Vulnerable packages
         if: hashFiles('**/*.sln', '**/*.csproj') != ''
         run: |
-          dotnet list package --vulnerable --include-transitive | tee vuln.txt
+          dotnet list Hestia.sln package --vulnerable --include-transitive | tee vuln.txt
           ! grep -q "has the following vulnerable packages" vuln.txt
 
   safety:

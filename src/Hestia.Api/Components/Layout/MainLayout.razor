@@ -1,0 +1,28 @@
+@inherits LayoutComponentBase
+<a class="skip" href="#main">Skip to content</a>
+<header class="topbar">
+    <a class="brand" href="/"><BrandMark /><span>Hestia</span></a>
+    <AuthorizeView>
+        <Authorized>
+            <nav class="topnav" aria-label="Main">
+                @if (context.User.IsInRole(HestiaApp.IrRole))
+                {
+                    <a href="/ir">IR console</a>
+                }
+                else
+                {
+                    <a href="/documents">Documents</a>
+                    <UpdatesBell @rendermode="InteractiveServer" />
+                }
+                <form method="post" action="/account/logout" class="inline">
+                    <AntiforgeryToken />
+                    <button type="submit" class="link">Sign out</button>
+                </form>
+            </nav>
+        </Authorized>
+    </AuthorizeView>
+</header>
+<main id="main" class="page">
+    @Body
+</main>
+<footer class="foot">Harbourline Lending (fictional) &middot; every download is recorded in an access log</footer>

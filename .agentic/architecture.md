@@ -34,12 +34,30 @@ Judgement: Build a modular monolith (documents, capital accounts, notices) with 
 ## Context
 ```mermaid
 flowchart LR
-  user[User] --> app[This system]
-  app --> ext[External system]
+  inv[Investor, phone] -->|HTTPS cookie| app[Hestia: ASP.NET Core + Blazor SSR]
+  ir[IR staff, desktop] -->|HTTPS cookie| app
+  cli[API client] -->|bearer token| app
+  app --> files[(Files: root/tenantId/docId.pdf)]
+  app -.slice 3.-> idp[MFA identity provider]
 ```
 
 ## Modules and boundaries
-TODO: each module, what it owns, what it may call.
+| Module | Project | Owns | May call |
+|---|---|---|---|
+| Tenancy (kernel) | `src/Modules/Tenancy` | `TenantId`, `ITenantContext` (from the `tenant_id` claim), `TenantScopedStore` (the only tenant-owned data store), `ITenantScopeFactory` | nothing |
+| Investors | `src/Modules/Investors` | investor entities (tenants), investor users, revoke/restore | Tenancy |
+| Documents | `src/Modules/Documents` | document metadata, files under `<root>/<tenant>/`, publish rules, `StatementPdf`, audited download | Tenancy, Audit block |
+| Host | `src/Hestia.Api` | Blazor components, minimal APIs, security wiring, IR actions, notifications on publish, demo seeding | everything |
+
+Investors and Documents never reference each other; implementations are `internal`; architecture tests enforce both.
+Capital accounts and notices become modules in later slices.
 
 ## Cross-cutting
-TODO: auth, logging, tracing, configuration, error handling.
+- **Auth:** Auth block (opaque bearer tokens). Browsers carry the token in the HttpOnly `hestia_session` cookie (ADR-0003). `RevokedUserGuard` decorates the block's stamp check. No self-registration.
+- **Tenancy:** central filter, ADR-0004. Tests: `Architecture/TenantFilterTests`, `Acceptance/TenantIsolationTests`.
+- **Audit:** Audit block, append-only and hash-chained; `document.downloaded` is written before the file is sent.
+- **Notifications:** Notifications block (in-app) through the Outbox block.
+- **Errors, health, correlation ids, rate limits:** Web block (ProblemDetails, `/health/live`, `/health/ready`).
+- **Building blocks:** vendored `.nupkg` files in `eng/packages` (ADR-0002).
+- **Config:** `Documents:Root`, `Documents:MaxBytes`, `Demo:Password`, `Demo:Seed` (see `.env.example`).
+- **Design dossier:** `docs/DESIGN.md`.

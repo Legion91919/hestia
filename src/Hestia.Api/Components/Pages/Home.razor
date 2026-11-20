@@ -1,0 +1,12 @@
+@page "/"
+@attribute [Authorize]
+@inject NavigationManager Nav
+@code {
+    [CascadingParameter] private Task<AuthenticationState> AuthState { get; set; } = default!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var user = (await AuthState).User;
+        Nav.NavigateTo(user.IsInRole(HestiaApp.IrRole) ? "/ir" : "/documents");
+    }
+}

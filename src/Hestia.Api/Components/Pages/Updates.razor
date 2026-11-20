@@ -1,0 +1,41 @@
+@page "/updates"
+@attribute [Authorize]
+@inject Agentic.Blocks.Notifications.IInboxStore Inbox
+@inject TimeProvider Time
+<PageTitle>Updates · Hestia</PageTitle>
+<h1>Updates</h1>
+
+@if (_items is null)
+{
+    <section class="card" aria-busy="true"><div class="skel w70"></div><div class="skel w50"></div></section>
+}
+else if (_items.Count == 0)
+{
+    <section class="card"><h2>Nothing new</h2><p class="meta">We will let you know here when a new document is published.</p></section>
+}
+else
+{
+    <ul class="rows">
+        @foreach (var item in _items)
+        {
+            <li class="row">
+                <div class="row-text"><b>@item.Title</b><div class="meta">@item.Body</div></div>
+                <span class="@(item.ReadAt is null ? "tag tag-new" : "tag tag-quiet")">@(item.ReadAt is null ? "Unread" : "Read")</span>
+            </li>
+        }
+    </ul>
+    <p><a href="/documents">Go to your documents</a></p>
+}
+
+@code {
+    [CascadingParameter] private Task<AuthenticationState> AuthState { get; set; } = default!;
+    private IReadOnlyList<Agentic.Blocks.Notifications.InboxItem>? _items;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var userId = (await AuthState).User.GetUserId()!;
+        var page = await Inbox.PageAsync(userId, new Agentic.Blocks.Core.PageRequest(limit: 50));
+        _items = page.IsSuccess ? page.Value.Items : [];
+        await Inbox.MarkAllReadAsync(userId, Time.GetUtcNow());   // opening the list counts as reading it
+    }
+}

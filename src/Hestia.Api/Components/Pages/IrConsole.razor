@@ -1,0 +1,123 @@
+@page "/ir"
+@attribute [Authorize(Policy = HestiaApp.IrRole)]
+@inject IrConsoleLoader Loader
+@inject Hestia.Api.Services.IrActions Actions
+<PageTitle>IR console · Hestia</PageTitle>
+<h1>Investor relations</h1>
+
+@if (_message is not null)
+{
+    <div class="@(_ok ? "banner banner-ok" : "banner banner-error")" role="status">@_message</div>
+}
+
+<div class="grid">
+    <section class="card">
+        <h2>Publish a statement</h2>
+        <p class="meta">Generates an invented PDF statement and notifies the investor's users in the app.</p>
+        <EditForm Model="Publish" FormName="publish" OnValidSubmit="PublishAsync" method="post">
+            <label for="investor">Investor</label>
+            <InputSelect id="investor" @bind-Value="Publish.TenantId">
+                @foreach (var i in _model.Investors)
+                {
+                    <option value="@i.TenantId">@i.Name</option>
+                }
+            </InputSelect>
+            <label for="period">Period</label>
+            <InputText id="period" @bind-Value="Publish.Period" placeholder="Q4 2026" />
+            <label for="balance">Closing capital balance (ZAR)</label>
+            <InputNumber id="balance" @bind-Value="Publish.ClosingBalance" class="num" />
+            <button type="submit" class="btn">Publish statement</button>
+        </EditForm>
+    </section>
+
+    <section class="card wide">
+        <h2>Investor users</h2>
+        <form method="post" @formname="access" @onsubmit="ChangeAccessAsync">
+            <AntiforgeryToken />
+            <table class="table">
+                <thead><tr><th>Investor</th><th>User</th><th>Email</th><th class="r">Documents</th><th>Access</th><th></th></tr></thead>
+                <tbody>
+                    @foreach (var investor in _model.Investors)
+                    {
+                        @foreach (var u in investor.Users)
+                        {
+                            <tr>
+                                <td>@investor.Name</td><td>@u.DisplayName</td><td>@u.Email</td><td class="r num">@investor.DocumentCount</td>
+                                <td>@(u.HasAccess ? "Active" : "Revoked")</td>
+                                <td>
+                                    @if (u.HasAccess)
+                                    {
+                                        <button type="submit" name="Change" value="@($"revoke|{u.TenantId}|{u.UserId}")" class="btn-small danger">Revoke access</button>
+                                    }
+                                    else
+                                    {
+                                        <button type="submit" name="Change" value="@($"restore|{u.TenantId}|{u.UserId}")" class="btn-small">Restore</button>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </form>
+    </section>
+
+    <section class="card wide">
+        <h2>Access log</h2>
+        <p class="meta">Newest downloads first. Append-only and hash-chained; nobody can edit or delete an entry.</p>
+        @if (_model.RecentAccess.Count == 0)
+        {
+            <p>No downloads yet.</p>
+        }
+        else
+        {
+            <table class="table">
+                <thead><tr><th class="r">#</th><th>When</th><th>Who</th><th>Investor</th><th>Document</th></tr></thead>
+                <tbody>
+                    @foreach (var a in _model.RecentAccess)
+                    {
+                        <tr><td class="r num">@a.Sequence</td><td class="num">@a.When</td><td>@a.Who</td><td>@a.Investor</td><td>@a.What</td></tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </section>
+</div>
+
+@code {
+    [CascadingParameter] private Task<AuthenticationState> AuthState { get; set; } = default!;
+    [SupplyParameterFromForm(FormName = "publish")] private PublishInput Publish { get; set; } = new();
+    [SupplyParameterFromForm(FormName = "access")] private string? Change { get; set; }
+    private IrConsoleModel _model = new([], []);
+    private string? _message;
+    private bool _ok;
+
+    protected override async Task OnInitializedAsync() => _model = await Loader.LoadAsync();
+
+    private async Task<string> ActorAsync() => (await AuthState).User.GetUserId()!;
+
+    private async Task PublishAsync()
+    {
+        var result = await Actions.PublishStatementAsync(Publish.TenantId ?? string.Empty, Publish.Period ?? string.Empty, Publish.ClosingBalance, await ActorAsync());
+        (_ok, _message) = result.IsSuccess
+            ? (true, result.Value.Created ? $"Published {result.Value.Document.Title}, {result.Value.Document.Period}. The investor's users were notified." : "That statement was already published.")
+            : (false, result.Error.Message);
+        _model = await Loader.LoadAsync();
+    }
+
+    private async Task ChangeAccessAsync()
+    {
+        var parts = (Change ?? string.Empty).Split('|');
+        if (parts.Length != 3) return;
+        var result = parts[0] == "revoke" ? await Actions.RevokeAsync(parts[1], parts[2], await ActorAsync()) : await Actions.RestoreAsync(parts[1], parts[2], await ActorAsync());
+        (_ok, _message) = result.IsSuccess ? (true, parts[0] == "revoke" ? "Access revoked. It stopped working immediately." : "Access restored.") : (false, result.Error.Message);
+        _model = await Loader.LoadAsync();
+    }
+
+    private sealed class PublishInput
+    {
+        public string? TenantId { get; set; }
+        public string? Period { get; set; } = "Q4 2026";
+        public decimal ClosingBalance { get; set; } = 13_250_000m;
+    }
+}

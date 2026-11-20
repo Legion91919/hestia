@@ -10,5 +10,9 @@ What the client needs to own this without us.
 - [ ] AI agent setup documented so their team can keep using it
 
 ## Known issues
+- All stores are in memory (users, documents metadata, audit, inbox); a restart loses them. Files survive on disk. Slice 2.
+- Browser sessions end when the 30-minute access token expires (no refresh in the browser yet).
+- MFA for investors is not built (product constraint; slice 3).
 
 ## Recommended next steps
+- Slice 2 persistence, then MFA. See `backlog.md`.

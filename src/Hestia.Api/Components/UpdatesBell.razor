@@ -1,0 +1,62 @@
+@* The one interactive component: a live unread badge over a server circuit. Everything else is static SSR. *@
+@implements IAsyncDisposable
+@inject Agentic.Blocks.Notifications.IInboxStore Inbox
+<a class="bell" href="/updates" aria-label="@Label">Updates@if (_unread > 0){<span class="badge">@_unread</span>}</a>
+
+@code {
+    [CascadingParameter] private Task<AuthenticationState>? AuthState { get; set; }
+    private int _unread;
+    private string? _userId;
+    private PeriodicTimer? _timer;
+    private readonly CancellationTokenSource _stop = new();
+
+    private string Label => _unread > 0 ? $"Updates, {_unread} unread" : "Updates";
+
+    protected override async Task OnInitializedAsync()
+    {
+        _userId = AuthState is null ? null : (await AuthState).User.GetUserId();
+        await RefreshAsync();
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (!firstRender || _userId is null) return;
+        _timer = new PeriodicTimer(TimeSpan.FromSeconds(15));
+        _ = PollAsync();
+    }
+
+    private async Task PollAsync()
+    {
+        try
+        {
+            while (_timer is not null && await _timer.WaitForNextTickAsync(_stop.Token))
+            {
+                await RefreshAsync();
+                await InvokeAsync(StateHasChanged);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // circuit closed
+        }
+    }
+
+    private async Task RefreshAsync()
+    {
+        try
+        {
+            _unread = _userId is null ? 0 : await Inbox.UnreadCountAsync(_userId, _stop.Token);
+        }
+        catch (InvalidOperationException)
+        {
+            _unread = 0;   // error state: no badge, try again on the next tick
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await _stop.CancelAsync();
+        _timer?.Dispose();
+        _stop.Dispose();
+    }
+}
