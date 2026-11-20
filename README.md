@@ -22,6 +22,18 @@ flowchart LR
   app --> log[(Append-only access log)]
 ```
 
+
+## Run it in GitHub Codespaces
+
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/Legion91919/hestia?quickstart=1)
+
+The dev container installs the SDKs, restores packages and runs every test once on first start. The same setup works locally with VS Code's Dev Containers extension.
+
+| What | Command | Port |
+|---|---|---|
+| API (Hestia) | `ASPNETCORE_ENVIRONMENT=Development ASPNETCORE_URLS=http://0.0.0.0:5203 dotnet run --project src/Hestia.Api` | 5203 |
+| All tests (same as CI) | `scripts/test-all.sh` | - |
+
 ## What it does (slice 1)
 - Investor view: newest statement first, earlier documents below, "New"/"Opened" status from the access log, live Updates badge.
 - Investor A never sees investor B's documents (tenant from the signed-in user's claim; tested across every endpoint).
