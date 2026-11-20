@@ -1,0 +1,7 @@
+{
+  "start": [
+    { "name": "app", "cmd": "dotnet run --project src/Hestia.Api --no-build", "env": { "ASPNETCORE_ENVIRONMENT": "Development", "ASPNETCORE_URLS": "http://localhost:5203", "Demo__Password": "demo-only-passphrase" }, "ready": "http://localhost:5203/health/ready" }
+  ],
+  "url": "http://localhost:5203/login",
+  "viewport": { "width": 1280, "height": 800 }
+}

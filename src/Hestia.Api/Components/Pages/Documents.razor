@@ -40,7 +40,7 @@ else
         <span class="@(hero.IsNew ? "tag tag-new" : "tag tag-quiet")">@(hero.IsNew ? "New this quarter" : "Opened")</span>
         <h2>@hero.Title, @hero.Period</h2>
         <div class="meta num">@hero.Fund &middot; published @hero.PublishedLabel &middot; @hero.SizeLabel</div>
-        <a class="btn" href="@hero.DownloadUrl">Open statement</a>
+        <a class="btn" href="@hero.DownloadUrl" data-enhance-nav="false">Open statement</a>
     </section>
     @if (_model.Earlier.Count > 0)
     {

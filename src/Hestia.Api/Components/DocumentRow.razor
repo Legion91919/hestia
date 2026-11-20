@@ -4,7 +4,7 @@
         <div class="meta num">@Row.KindLabel &middot; @Row.Period &middot; @Row.PublishedLabel &middot; @Row.SizeLabel</div>
     </div>
     <span class="@(Row.IsNew ? "tag tag-new" : "tag tag-quiet")">@Row.StatusLabel</span>
-    <a class="row-link" href="@Row.DownloadUrl" aria-label="Open @Row.Title, @Row.Period">Open</a>
+    <a class="row-link" href="@Row.DownloadUrl" data-enhance-nav="false" aria-label="Open @Row.Title, @Row.Period">Open</a>
 </li>
 
 @code {

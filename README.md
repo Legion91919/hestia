@@ -3,6 +3,16 @@
 The investor portal for Harbourline Lending (a fictional lender). Fund investors get their statements in one place instead of as
 email attachments, and Harbourline can say who opened which document, and when, in seconds.
 
+## See it in action
+
+![Hestia walkthrough: an investor signs in and downloads a statement, the IR console's access log shows that download, IR revokes the investor's access and the investor is locked out](docs/media/demo.gif)
+
+| Your documents | Access log | Mobile |
+|---|---|---|
+| ![Investor documents page with this quarter's statement](docs/media/documents.png) | ![IR console access log showing the investor's download](docs/media/access-log.png) | ![Mobile view of an investor's documents](docs/media/mobile.png) |
+
+Full-quality video: [docs/media/demo.mp4](docs/media/demo.mp4). Recorded from the running app with `demo/` (`cd demo && npm install && npm run record`).
+
 ## Design at a glance
 Investors sign in (mostly on a phone) and open this quarter's statement in one tap; investor relations publish statements, revoke
 access and read the access log. Every download is written to an append-only, hash-chained log before the file is sent.

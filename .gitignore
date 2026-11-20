@@ -35,3 +35,7 @@ denylist.txt
 
 # Local document storage (invented files written at runtime)
 App_Data/
+
+# Demo recorder
+demo/node_modules/
+docs/media/.video/

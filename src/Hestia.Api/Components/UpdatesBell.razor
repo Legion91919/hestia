@@ -1,7 +1,7 @@
 @* The one interactive component: a live unread badge over a server circuit. Everything else is static SSR. *@
 @implements IAsyncDisposable
 @inject Agentic.Blocks.Notifications.IInboxStore Inbox
-<a class="bell" href="/updates" aria-label="@Label">Updates@if (_unread > 0){<span class="badge">@_unread</span>}</a>
+<a class="bell" href="/updates" aria-label="@Label"><span>Updates</span>@if (_unread > 0){<span class="badge">@_unread</span>}</a>
 
 @code {
     [CascadingParameter] private Task<AuthenticationState>? AuthState { get; set; }
